@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PetFeeder Dashboard</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link rel="stylesheet" href="css/main.css">
+</head>
+<body>
+  <div class="dashboard">
+    <header class="header">
+      <h1><i class="fas fa-paw"></i> PetFeeder</h1>
+      <div class="device-status">
+        <span id="connectionStatus" class="status offline"><i class="fas fa-circle"></i> Offline</span>
+        <div class="datetime">
+          <span id="currentDate" class="date">--/--/----</span>
+          <span id="currentTime" class="time">--:--:--</span>
+        </div>
+      </div>
+    </header>
+
+    <nav class="sidebar">
+      <a href="index.html" class="active"><i class="fas fa-home"></i> Trang chủ</a>
+      <a href="schedule.html"><i class="fas fa-calendar-alt"></i> Lịch trình</a>
+      <a href="history.html"><i class="fas fa-history"></i> Lịch sử</a>
+      <a href="settings.html"><i class="fas fa-cog"></i> Cài đặt</a>
+    </nav>
+
+    <main class="content">
+      <div class="alert" id="lowFoodAlert">
+        <i class="fas fa-exclamation-triangle"></i>
+        <span>CẢNH BÁO: Thức ăn sắp hết! Vui lòng bổ sung.</span>
+        <button class="alert-close"><i class="fas fa-times"></i></button>
+      </div>
+
+      <div class="cards">
+        <div class="card food-level">
+          <h2><i class="fas fa-utensils"></i> Mức thức ăn</h2>
+          <div class="progress-container">
+            <div class="progress-bar">
+              <div class="progress" id="foodLevelBar"></div>
+              <span class="progress-text" id="foodLevelText">0%</span>
+            </div>
+          </div>
+          <div class="card-footer">
+            <i class="far fa-clock"></i>
+            <span id="lastFedTime">Lần cuối: Chưa có dữ liệu</span>
+          </div>
+        </div>
+
+        <div class="card quick-actions">
+          <h2><i class="fas fa-bolt"></i> Thao tác nhanh</h2>
+          <div class="action-buttons">
+            <button id="feedNow" class="btn btn-primary">
+              <i class="fas fa-utensil-spoon"></i> Cho ăn ngay
+            </button>
+            <button id="refreshBtn" class="btn btn-secondary">
+              <i class="fas fa-sync-alt"></i> Làm mới
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card lcd-preview">
+        <div class="card-header">
+          <h2><i class="fas fa-tv"></i> Màn hình LCD</h2>
+          <div class="lcd-status">
+            <span class="dot green"></span>
+            <span>Đang hoạt động</span>
+          </div>
+        </div>
+        <div class="lcd-display">
+          <div class="lcd-line" id="lcdLine1">PetFeeder Ready</div>
+          <div class="lcd-line" id="lcdLine2">Đã kết nối</div>
+        </div>
+        <div class="lcd-controls">
+          <div class="input-group">
+            <label for="lcdInput1">Dòng 1</label>
+            <input type="text" id="lcdInput1" placeholder="Nhập nội dung..." maxlength="16">
+          </div>
+          <div class="input-group">
+            <label for="lcdInput2">Dòng 2</label>
+            <input type="text" id="lcdInput2" placeholder="Nhập nội dung..." maxlength="16">
+          </div>
+          <button id="updateLCD" class="btn btn-primary">Cập nhật LCD</button>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/8.0.0/firebase.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lịch sử - PetFeeder</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link rel="stylesheet" href="css/main.css">
+</head>
+<body>
+  <div class="dashboard">
+    <header class="header">
+      <h1><i class="fas fa-paw"></i> PetFeeder</h1>
+      <div class="device-status">
+        <span id="connectionStatus" class="status offline"><i class="fas fa-circle"></i> Offline</span>
+        <div class="datetime">
+          <span id="currentDate" class="date">--/--/----</span>
+          <span id="currentTime" class="time">--:--:--</span>
+        </div>
+      </div>
+    </header>
+
+    <nav class="sidebar">
+      <a href="index.html"><i class="fas fa-home"></i> Trang chủ</a>
+      <a href="schedule.html"><i class="fas fa-calendar-alt"></i> Lịch trình</a>
+      <a href="history.html" class="active"><i class="fas fa-history"></i> Lịch sử</a>
+      <a href="settings.html"><i class="fas fa-cog"></i> Cài đặt</a>
+    </nav>
+
+    <main class="content">
+      <div class="card">
+        <h2><i class="fas fa-filter"></i> Bộ lọc</h2>
+        <div class="filter-controls">
+          <div class="form-group">
+            <label for="filterDate"><i class="far fa-calendar"></i> Ngày</label>
+            <input type="date" id="filterDate">
+          </div>
+          <div class="form-group">
+            <label for="filterType"><i class="fas fa-tag"></i> Loại</label>
+            <select id="filterType">
+              <option value="all">Tất cả</option>
+              <option value="manual">Thủ công</option>
+              <option value="schedule">Tự động</option>
+            </select>
+          </div>
+          <button id="applyFilter" class="btn btn-secondary">
+            <i class="fas fa-filter"></i> Áp dụng
+          </button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h2><i class="fas fa-history"></i> Lịch sử cho ăn</h2>
+          <span class="badge" id="historyCount">0 bản ghi</span>
+        </div>
+        <div class="history-container">
+          <div class="history-table">
+            <table>
+              <thead>
+                <tr>
+                  <th><i class="far fa-clock"></i> Thời gian</th>
+                  <th><i class="fas fa-tag"></i> Loại</th>
+                  <th><i class="fas fa-utensils"></i> Khẩu phần</th>
+                </tr>
+              </thead>
+              <tbody id="historyTableBody">
+                <tr class="empty-row">
+                  <td colspan="3">
+                    <div class="empty-state">
+                      <i class="far fa-calendar-times"></i>
+                      <p>Không có dữ liệu lịch sử</p>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/8.0.0/firebase.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

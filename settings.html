@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cài đặt - PetFeeder</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link rel="stylesheet" href="css/main.css">
+</head>
+<body>
+  <div class="dashboard">
+    <header class="header">
+      <h1><i class="fas fa-paw"></i> PetFeeder</h1>
+      <div class="device-status">
+        <span id="connectionStatus" class="status offline"><i class="fas fa-circle"></i> Offline</span>
+        <div class="datetime">
+          <span id="currentDate" class="date">--/--/----</span>
+          <span id="currentTime" class="time">--:--:--</span>
+        </div>
+      </div>
+    </header>
+
+    <nav class="sidebar">
+      <a href="index.html"><i class="fas fa-home"></i> Trang chủ</a>
+      <a href="schedule.html"><i class="fas fa-calendar-alt"></i> Lịch trình</a>
+      <a href="history.html"><i class="fas fa-history"></i> Lịch sử</a>
+      <a href="settings.html" class="active"><i class="fas fa-cog"></i> Cài đặt</a>
+    </nav>
+
+    <main class="content">
+      <div class="settings-grid">
+        <div class="card">
+          <h2><i class="fas fa-wifi"></i> Cài đặt mạng</h2>
+          <form id="networkSettingsForm" class="settings-form">
+            <div class="form-group">
+              <label for="wifiSSID">Tên mạng WiFi</label>
+              <input type="text" id="wifiSSID" placeholder="Nhập tên WiFi" required>
+            </div>
+            <div class="form-group">
+              <label for="wifiPassword">Mật khẩu WiFi</label>
+              <input type="password" id="wifiPassword" placeholder="Nhập mật khẩu">
+            </div>
+            <button type="submit" class="btn btn-primary">
+              <i class="fas fa-save"></i> Lưu cài đặt
+            </button>
+          </form>
+        </div>
+
+        <div class="card">
+          <h2><i class="fas fa-utensils"></i> Cài đặt thức ăn</h2>
+          <form id="foodSettingsForm" class="settings-form">
+            <div class="form-group">
+              <label for="feedDuration">Thời gian cho ăn (ms)</label>
+              <input type="number" id="feedDuration" min="500" max="5000" value="2000" required>
+            </div>
+            <div class="form-group">
+              <label for="lowFoodThreshold">Ngưỡng cảnh báo thức ăn thấp (%)</label>
+              <input type="number" id="lowFoodThreshold" min="5" max="50" value="20" required>
+            </div>
+            <button type="submit" class="btn btn-primary">
+              <i class="fas fa-save"></i> Lưu cài đặt
+            </button>
+          </form>
+        </div>
+
+        <div class="card system-info">
+          <h2><i class="fas fa-info-circle"></i> Thông tin hệ thống</h2>
+          <div class="info-grid">
+            <div class="info-item">
+              <span class="label">Phiên bản phần mềm</span>
+              <span class="value">v1.2.0</span>
+            </div>
+            <div class="info-item">
+              <span class="label">Ngày cập nhật</span>
+              <span class="value">27/03/2023</span>
+            </div>
+          </div>
+          <div class="info-actions">
+            <button id="checkUpdate" class="btn btn-secondary">
+              <i class="fas fa-sync-alt"></i> Kiểm tra cập nhật
+            </button>
+            <button id="restartDevice" class="btn btn-warning">
+              <i class="fas fa-power-off"></i> Khởi động lại
+            </button>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/8.0.0/firebase.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

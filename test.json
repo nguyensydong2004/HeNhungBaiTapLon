@@ -1,0 +1,44 @@
+{
+  "controls": {
+    "manual_feed": false,
+    "auto_feed": false,
+    "feed_timestamp": "",
+    "restart": false
+  },
+  "display": {
+    "lcd_line1": "PetFeeder",
+    "lcd_line2": "Ready",
+    "last_updated": 0
+  },
+  "history": {
+    "-Nabc123": {
+      "timestamp": "2023-03-28T12:00:00.000Z",
+      "type": "manual",
+      "portion": 1,
+      "status": "completed",
+      "schedule_id": ""
+    }
+  },
+  "schedule": {
+    "-Nsched1": {
+      "hour": 8,
+      "minute": 0,
+      "portion": 2,
+      "enabled": true,
+      "days": [1, 2, 3, 4, 5]
+    }
+  },
+  "sensors": {
+    "food_level": 75,
+    "last_fed": "28/03/2023 12:00:00",
+    "connection_status": true
+  },
+  "settings": {
+    "feed_duration": 2000,
+    "low_food_threshold": 20,
+    "wifi": {
+      "ssid": "",
+      "password": ""
+    }
+  }
+} 
