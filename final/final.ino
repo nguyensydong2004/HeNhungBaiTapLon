@@ -138,6 +138,15 @@ void showLCDMessage(String line1, String line2) {
   lcd.print(line1);
   lcd.setCursor(0, 1);
   lcd.print(line2);
+  
+  // Đồng bộ lên Firebase nếu kết nối
+  if (firebaseReady) {
+    FirebaseJson displayJson;
+    displayJson.set("lcd_line1", line1);
+    displayJson.set("lcd_line2", line2);
+    displayJson.set("last_updated", getISODateTime());
+    Firebase.RTDB.setJSON(&fbdo, "/display", &displayJson);
+  }
 }
 
 void connectWiFi() {
@@ -411,22 +420,39 @@ void updateSensorsAndDisplay() {
     timeStr = timeClient.getFormattedTime();
   }
 
+  // Tạo nội dung hiển thị trên LCD
+  String lcdLine1 = "Food:" + String(foodLevel) + "%";
+  String lcdLine2 = timeStr;
+
   // Hiển thị lên LCD
   lcd.setCursor(0, 0);
-  lcd.print("Food:" + String(foodLevel) + "% ");
+  lcd.print(lcdLine1);
   lcd.setCursor(0, 1);
-  lcd.print(timeStr);
+  lcd.print(lcdLine2);
 
   // Gửi lên Firebase
   if (firebaseReady) {
+    // Cập nhật mức thức ăn
     if (foodLevel >= 0) {
       Firebase.RTDB.setInt(&fbdo, "/sensors/food_level", foodLevel);
     }
     
+    // Cảnh báo thức ăn thấp
     if (foodLevel < eepromSettings.lowFoodThreshold) {
-      Firebase.RTDB.setString(&fbdo, "/display/lcd_line1", "LOW FOOD WARNING!");
+      lcdLine1 = "LOW FOOD WARNING!";
+      Firebase.RTDB.setString(&fbdo, "/sensors/low_food_alert", "true");
+    } else {
+      Firebase.RTDB.setString(&fbdo, "/sensors/low_food_alert", "false");
     }
     
+    // Cập nhật nội dung LCD lên Firebase
+    FirebaseJson displayJson;
+    displayJson.set("lcd_line1", lcdLine1);
+    displayJson.set("lcd_line2", lcdLine2);
+    displayJson.set("last_updated", getISODateTime());
+    Firebase.RTDB.setJSON(&fbdo, "/display", &displayJson);
+    
+    // Cập nhật thời gian cho ăn cuối cùng
     if (millis() - lastFeedTime > 60000) {
       Firebase.RTDB.setString(&fbdo, "/sensors/last_fed", getISODateTime());
       lastFeedTime = millis();

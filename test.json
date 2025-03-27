@@ -6,9 +6,9 @@
     "restart": false
   },
   "display": {
-    "lcd_line1": "PetFeeder",
-    "lcd_line2": "Ready",
-    "last_updated": 0
+    "lcd_line1": "Nội dung dòng 1",
+    "lcd_line2": "Nội dung dòng 2",
+    "last_updated": "thời gian cập nhật"
   },
   "history": {
     "-Nabc123": {
