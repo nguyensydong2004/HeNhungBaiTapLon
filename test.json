@@ -37,8 +37,22 @@
     "feed_duration": 2000,
     "low_food_threshold": 20,
     "wifi": {
-      "ssid": "",
-      "password": ""
+    "ssid": "OPPO A53",
+    "password": "11111111",
+    "last_updated": "2023-03-28T12:00:00.000+07:00"
     }
+  },
+  "rtc": {
+  "timestamp": "2023-03-28T12:00:00.000+07:00", 
+  "timezone": "UTC+7",
+  "battery_backup": true,
+  "last_sync": "2023-03-28T11:59:55.000+07:00"  
+  },
+  "eeprom": {
+    "initialized": true,
+    "settings_version": 1,
+    "last_write": "2023-03-28T11:30:00.000Z",
+    "error_count": 0,
+    "wear_leveling": 95
   }
-} 
+}
