@@ -302,12 +302,12 @@ String getISODateTime() {
     return "";
   }
   
-  char buf[25];
+  char buf[35];
   sprintf(buf, "%04d-%02d-%02dT%02d:%02d:%02d.000+07:00",
-          now.year(), now.month(), now.day(),
-          now.hour(), now.minute(), now.second());
+        now.year(), now.month(), now.day(),
+        now.hour(), now.minute(), now.second());
   return String(buf);
-}
+  }
 
 // ========== HÀM CHỨC NĂNG CHÍNH ==========
 
@@ -420,7 +420,9 @@ void updateSensorsAndDisplay() {
   
   if (rtcAvailable) {
     DateTime now = rtc.now();
-    timeStr = String(now.hour()) + ":" + String(now.minute()) + ":" + String(now.second());
+    char buffer[9]; // HH:MM:SS
+    sprintf(buffer, "%02d:%02d:%02d", now.hour(), now.minute(), now.second());
+    timeStr = String(buffer);
   } else if (timeClient.isTimeSet()) {
     timeStr = timeClient.getFormattedTime();
   }
