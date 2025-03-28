@@ -163,17 +163,15 @@ void connectWiFi() {
   }
   
   if (WiFi.status() != WL_CONNECTED) {
-    showLCDMessage("WiFi Failed", "Retrying...");
+    showLCDMessage("WiFi Failed", "Use Button");
     Serial.println("\nWiFi connection failed");
-    delay(2000);
-    ESP.restart();
+    return;
   }
   
   Serial.println("\nConnected! IP: " + WiFi.localIP().toString());
   showLCDMessage("Connected", WiFi.localIP().toString());
   delay(1000);
   
-  // Cập nhật trạng thái kết nối
   if (firebaseReady) {
     Firebase.RTDB.setBool(&fbdo, "/sensors/connection_status", true);
   }
@@ -322,7 +320,8 @@ void checkWiFiConnection() {
     }
     
     if (!currentStatus) {
-      // Thử kết nối lại với cấu hình mới từ Firebase
+      showLCDMessage("WiFi Disconnected", "Use Button");
+      // Thử kết nối lại nhưng không khởi động lại
       connectWiFi();
     }
     
@@ -398,10 +397,16 @@ void readFirebaseControls() {
 
 void checkManualButton() {
   static unsigned long lastButtonPress = 0;
+  static bool buttonPressed = false;
   
-  if (digitalRead(buttonPin) == LOW && millis() - lastButtonPress > 2000) {
-    feedManual();
-    lastButtonPress = millis();
+  if (digitalRead(buttonPin) == LOW) {
+    if (!buttonPressed && millis() - lastButtonPress > 1000) {
+      buttonPressed = true;
+      feedManual();
+      lastButtonPress = millis();
+    }
+  } else {
+    buttonPressed = false;
   }
 }
 
@@ -423,6 +428,11 @@ void updateSensorsAndDisplay() {
   // Tạo nội dung hiển thị trên LCD
   String lcdLine1 = "Food:" + String(foodLevel) + "%";
   String lcdLine2 = timeStr;
+  
+  // Hiển thị trạng thái offline nếu mất kết nối
+  if (WiFi.status() != WL_CONNECTED) {
+    lcdLine2 += " Offline";
+  }
 
   // Hiển thị lên LCD
   lcd.setCursor(0, 0);
@@ -622,24 +632,60 @@ void feedAuto(int portion) {
 }
 
 void logFeeding(String type, int portion) {
-  if (!firebaseReady) return;
-
-  String path = "/history/" + String(millis());
-  
-  FirebaseJson json;
-  json.set("timestamp", getISODateTime());
-  json.set("type", type);
-  json.set("portion", portion);
-  json.set("status", "completed");
-  
-  if (type == "schedule") {
-    json.set("schedule_id", String(millis()));
-  }
-  
-  if (!Firebase.RTDB.setJSON(&fbdo, path.c_str(), &json)) {
-    Serial.println("Failed to log feeding: " + fbdo.errorReason());
+  if (firebaseReady) {
+    // Gửi lên Firebase nếu có kết nối
+    String path = "/history/" + String(millis());
+    FirebaseJson json;
+    json.set("timestamp", getISODateTime());
+    json.set("type", type);
+    json.set("portion", portion);
+    json.set("status", "completed");
+    
+    if (!Firebase.RTDB.setJSON(&fbdo, path.c_str(), &json)) {
+      Serial.println("Failed to log feeding: " + fbdo.errorReason());
+    }
+  } else {
+    // Lưu vào EEPROM để đồng bộ sau
+    saveFeedingToEEPROM(type, portion);
   }
   
   lastFeedTime = millis();
-  Firebase.RTDB.setString(&fbdo, "/sensors/last_fed", getISODateTime());
+}
+
+void saveFeedingToEEPROM(String type, int portion) {
+  // Tìm vị trí trống trong EEPROM
+  int address = sizeof(EEPROMSettings);
+  while (EEPROM.read(address) != 0xFF && address < EEPROM.length() - 10) {
+    address += 10; // Mỗi bản ghi chiếm 10 byte
+  }
+  
+  if (address < EEPROM.length() - 10) {
+    EEPROM.write(address, type == "manual" ? 1 : 2);
+    EEPROM.write(address + 1, portion);
+    EEPROM.put(address + 2, getCurrentUnixTime());
+    EEPROM.commit();
+    Serial.println("Saved feeding to EEPROM");
+  }
+}
+
+void syncFeedingsFromEEPROM() {
+  int address = sizeof(EEPROMSettings);
+  while (address < EEPROM.length() - 10) {
+    byte feedingType = EEPROM.read(address);
+    if (feedingType == 0xFF) break;
+    
+    byte portion = EEPROM.read(address + 1);
+    uint32_t timestamp;
+    EEPROM.get(address + 2, timestamp);
+    
+    // Gửi lên Firebase
+    logFeeding(feedingType == 1 ? "manual" : "schedule", portion);
+    
+    // Xóa bản ghi đã đồng bộ
+    for (int i = 0; i < 10; i++) {
+      EEPROM.write(address + i, 0xFF);
+    }
+    address += 10;
+  }
+  EEPROM.commit();
 }
