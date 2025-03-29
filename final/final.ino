@@ -8,32 +8,26 @@
 #include <EEPROM.h>
 #include <NTPClient.h>
 
-// Config WiFi
 String wifiSSID = "";
 String wifiPassword = "";
 
-// Firebase configuration
 #define FIREBASE_HOST "henhung-3c03a-default-rtdb.firebaseio.com"
 #define FIREBASE_AUTH "3rg9hgQ0sU1ynXF3CLw7H8M6S24NGB82cCMafNYk"
 
-// Khởi tạo thiết bị
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 Servo servo;
 RTC_DS3231 rtc;
 WiFiUDP ntpUDP;
 NTPClient timeClient(ntpUDP, "vn.pool.ntp.org", 7 * 3600);
 
-// Firebase objects
 FirebaseData fbdo;
 FirebaseAuth auth;
 FirebaseConfig config;
 
-// Chân kết nối
 const int servoPin = D6;
 const int trigPin = D5, echoPin = D7;
 const int buttonPin = D3;
 
-// Cấu trúc EEPROM
 struct EEPROMSettings {
   int feedDuration;
   int lowFoodThreshold;
@@ -44,7 +38,7 @@ struct EEPROMSettings {
   char wifiPassword[64];
 };
 
-// Biến toàn cục
+
 EEPROMSettings eepromSettings;
 unsigned long lastFeedTime = 0;
 bool lastConnectionStatus = false;
@@ -54,36 +48,27 @@ bool firebaseReady = false;
 void setup() {
   Serial.begin(115200);
   
-  // Khởi tạo LCD
   lcd.init();
   lcd.backlight();
   showLCDMessage("PetFeeder", "Booting...");
 
-  // Khởi tạo EEPROM
   EEPROM.begin(sizeof(EEPROMSettings));
   loadEEPROMSettings();
 
-  // Khởi tạo WiFi từ EEPROM
   wifiSSID = String(eepromSettings.wifiSSID);
   wifiPassword = String(eepromSettings.wifiPassword);
 
-  // Kết nối WiFi
   connectWiFi();
 
-  // Khởi tạo RTC
   initRTC();
 
-  // Khởi tạo NTP
   timeClient.begin();
   updateNetworkTime();
 
-  // Kết nối Firebase
   initFirebase();
 
-  // Khởi tạo phần cứng
   initHardware();
 
-  // Đồng bộ cài đặt từ Firebase
   syncSettingsFromFirebase();
 }
 
@@ -92,45 +77,36 @@ void loop() {
   static unsigned long lastFirebaseCheck = 0;
   static unsigned long lastWifiCheck = 0;
   
-  // Đồng bộ thời gian mỗi giờ
   if (millis() - lastTimeSync > 3600000) {
     updateNetworkTime();
     lastTimeSync = millis();
   }
 
-  // Kiểm tra Firebase mỗi phút
   if (millis() - lastFirebaseCheck > 60000) {
     firebaseReady = Firebase.ready();
     lastFirebaseCheck = millis();
   }
 
-  // Kiểm tra cập nhật WiFi mỗi 5 phút
   if (millis() - lastWifiCheck > 60000) {
     checkWiFiConfigUpdate();
     lastWifiCheck = millis();
   }
 
-  // Kiểm tra kết nối WiFi
   checkWiFiConnection();
 
-  // Đọc điều khiển từ Firebase
   if (firebaseReady) {
     readFirebaseControls();
   }
 
-  // Kiểm tra nút nhấn thủ công
   checkManualButton();
 
-  // Kiểm tra lịch tự động
   checkAutoSchedule();
   
-  // Cập nhật cảm biến và hiển thị
   updateSensorsAndDisplay();
   
-  delay(100); // Giảm thời gian delay
+  delay(100);
 }
 
-// ========== HÀM HỖ TRỢ ==========
 
 void showLCDMessage(String line1, String line2) {
   lcd.clear();
@@ -138,8 +114,7 @@ void showLCDMessage(String line1, String line2) {
   lcd.print(line1);
   lcd.setCursor(0, 1);
   lcd.print(line2);
-  
-  // Đồng bộ lên Firebase nếu kết nối
+
   if (firebaseReady) {
     FirebaseJson displayJson;
     displayJson.set("lcd_line1", line1);
@@ -261,7 +236,6 @@ void loadEEPROMSettings() {
   EEPROM.get(0, eepromSettings);
   
   if (eepromSettings.initialized != 0xAA) {
-    // Giá trị mặc định
     eepromSettings.feedDuration = 2000;
     eepromSettings.lowFoodThreshold = 20;
     eepromSettings.lastWriteTime = 0;
@@ -309,7 +283,6 @@ String getISODateTime() {
   return String(buf);
   }
 
-// ========== HÀM CHỨC NĂNG CHÍNH ==========
 
 void checkWiFiConnection() {
   bool currentStatus = (WiFi.status() == WL_CONNECTED);
@@ -321,7 +294,6 @@ void checkWiFiConnection() {
     
     if (!currentStatus) {
       showLCDMessage("WiFi Disconnected", "Use Button");
-      // Thử kết nối lại nhưng không khởi động lại
       connectWiFi();
     }
     
@@ -332,7 +304,6 @@ void checkWiFiConnection() {
 void syncSettingsFromFirebase() {
   if (!firebaseReady) return;
 
-  // Đồng bộ thời gian cho ăn
   if (Firebase.RTDB.getInt(&fbdo, "/settings/feed_duration")) {
     int newDuration = fbdo.intData();
     if (eepromSettings.feedDuration != newDuration) {
@@ -342,7 +313,6 @@ void syncSettingsFromFirebase() {
     }
   }
   
-  // Đồng bộ ngưỡng thức ăn thấp
   if (Firebase.RTDB.getInt(&fbdo, "/settings/low_food_threshold")) {
     int newThreshold = fbdo.intData();
     if (eepromSettings.lowFoodThreshold != newThreshold) {
@@ -420,51 +390,42 @@ void updateSensorsAndDisplay() {
   
   if (rtcAvailable) {
     DateTime now = rtc.now();
-    char buffer[9]; // HH:MM:SS
+    char buffer[9];
     sprintf(buffer, "%02d:%02d:%02d", now.hour(), now.minute(), now.second());
     timeStr = String(buffer);
   } else if (timeClient.isTimeSet()) {
     timeStr = timeClient.getFormattedTime();
   }
 
-  // Tạo nội dung hiển thị trên LCD
   String lcdLine1 = "Food:" + String(foodLevel) + "%";
   String lcdLine2 = timeStr;
   
-  // Hiển thị trạng thái offline nếu mất kết nối
   if (WiFi.status() != WL_CONNECTED) {
     lcdLine2 += " Offline";
   }
 
-  // Hiển thị lên LCD
   lcd.setCursor(0, 0);
   lcd.print(lcdLine1);
   lcd.setCursor(0, 1);
   lcd.print(lcdLine2);
 
-  // Gửi lên Firebase
   if (firebaseReady) {
-    // Cập nhật mức thức ăn
     if (foodLevel >= 0) {
       Firebase.RTDB.setInt(&fbdo, "/sensors/food_level", foodLevel);
     }
-    
-    // Cảnh báo thức ăn thấp
+
     if (foodLevel < eepromSettings.lowFoodThreshold) {
       lcdLine1 = "LOW FOOD WARNING!";
       Firebase.RTDB.setString(&fbdo, "/sensors/low_food_alert", "true");
     } else {
       Firebase.RTDB.setString(&fbdo, "/sensors/low_food_alert", "false");
     }
-    
-    // Cập nhật nội dung LCD lên Firebase
     FirebaseJson displayJson;
     displayJson.set("lcd_line1", lcdLine1);
     displayJson.set("lcd_line2", lcdLine2);
     displayJson.set("last_updated", getISODateTime());
     Firebase.RTDB.setJSON(&fbdo, "/display", &displayJson);
-    
-    // Cập nhật thời gian cho ăn cuối cùng
+  
     if (millis() - lastFeedTime > 60000) {
       Firebase.RTDB.setString(&fbdo, "/sensors/last_fed", getISODateTime());
       lastFeedTime = millis();
@@ -473,49 +434,40 @@ void updateSensorsAndDisplay() {
 }
 
 int readFoodLevel() {
-  // 1. Cấu hình ngưỡng khoảng cách
-  const float MIN_DISTANCE = 2.0;    // Dưới 2cm coi như đầy 100%
-  const float MAX_DISTANCE = 11.75;  // Trên 11.75cm coi như hết 0%
-  const int SAMPLE_COUNT = 3;        // Số lần đọc mẫu
+  const float MIN_DISTANCE = 2.0;    
+  const float MAX_DISTANCE = 11.75;  
+  const int SAMPLE_COUNT = 3;        
   
-  // 2. Đọc nhiều lần để lấy giá trị ổn định
   float totalDistance = 0;
   int validSamples = 0;
   
   for (int i = 0; i < SAMPLE_COUNT; i++) {
-    // Phát xung siêu âm
     digitalWrite(trigPin, LOW);
     delayMicroseconds(2);
     digitalWrite(trigPin, HIGH);
     delayMicroseconds(10);
     digitalWrite(trigPin, LOW);
-    
-    // Đọc thời gian phản hồi
+  
     long duration = pulseIn(echoPin, HIGH, 30000);
     if (duration <= 0) continue;
     
-    // Tính khoảng cách
     float distance = duration * 0.0343 / 2;
     
-    // Chỉ chấp nhận giá trị trong khoảng hợp lý (2cm-30cm)
     if (distance >= 2.0 && distance <= 30.0) {
       totalDistance += distance;
       validSamples++;
     }
     
-    delay(50); // Chờ ổn định
+    delay(50); 
   }
 
-  // 3. Xử lý khi không có mẫu hợp lệ
   if (validSamples == 0) {
     Serial.println("Lỗi cảm biến: Không đọc được giá trị hợp lệ");
-    return -1; // Trả về -1 để báo lỗi
+    return -1; 
   }
   
-  // 4. Tính khoảng cách trung bình
   float avgDistance = totalDistance / validSamples;
   
-  // 5. Áp dụng ngưỡng theo yêu cầu
   if (avgDistance <= MIN_DISTANCE) {
     Serial.println("Mức thức ăn: 100% (dưới ngưỡng tối thiểu)");
     return 100;
@@ -525,7 +477,6 @@ int readFoodLevel() {
     return 0;
   }
   
-  // 6. Tính toán phần trăm trong khoảng 2-11.75cm
   int level = 100 - map(avgDistance * 100, MIN_DISTANCE * 100, MAX_DISTANCE * 100, 0, 100);
   
   Serial.print("Mức thức ăn: ");
@@ -635,7 +586,6 @@ void feedAuto(int portion) {
 
 void logFeeding(String type, int portion) {
   if (firebaseReady) {
-    // Gửi lên Firebase nếu có kết nối
     String path = "/history/" + String(millis());
     FirebaseJson json;
     json.set("timestamp", getISODateTime());
@@ -647,7 +597,6 @@ void logFeeding(String type, int portion) {
       Serial.println("Failed to log feeding: " + fbdo.errorReason());
     }
   } else {
-    // Lưu vào EEPROM để đồng bộ sau
     saveFeedingToEEPROM(type, portion);
   }
   
@@ -655,10 +604,9 @@ void logFeeding(String type, int portion) {
 }
 
 void saveFeedingToEEPROM(String type, int portion) {
-  // Tìm vị trí trống trong EEPROM
   int address = sizeof(EEPROMSettings);
   while (EEPROM.read(address) != 0xFF && address < EEPROM.length() - 10) {
-    address += 10; // Mỗi bản ghi chiếm 10 byte
+    address += 10; 
   }
   
   if (address < EEPROM.length() - 10) {
@@ -680,10 +628,7 @@ void syncFeedingsFromEEPROM() {
     uint32_t timestamp;
     EEPROM.get(address + 2, timestamp);
     
-    // Gửi lên Firebase
     logFeeding(feedingType == 1 ? "manual" : "schedule", portion);
-    
-    // Xóa bản ghi đã đồng bộ
     for (int i = 0; i < 10; i++) {
       EEPROM.write(address + i, 0xFF);
     }
